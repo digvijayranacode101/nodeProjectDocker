@@ -1,4 +1,4 @@
-name: CICD
+name: CICD Node application
 
 on:
   push:
@@ -9,12 +9,20 @@ jobs:
     runs-on: [ubuntu-latest]
     steps:
       - name: Checkout Source
-        uses: actions/checkout@v3
-      - name: Set Node.js 16.x
-        uses: actions/setup-node@v3
-        with:
-          node-version: 16.x
-      - name: Install Dependencies
-        run : npm install
-      - name: Test Project
-        run: npm test
+        uses: actions/checkout@v4
+      - name: Login to docker hub
+        uses: docker login -u ${{ secrets.DOCKER_HUB_USERNAME }} -p ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+      - name: Build docker image
+        run: docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/nodeapp .
+      - name: Publish image to docker hub
+        run: docker push ${{ secrets.DOCKER_HUB_USERNAME }}/nodeapp:latest
+    
+  publish:
+    needs: build
+    runs-on: self-hosted
+    steps:
+      - name: Pull image from docker hub
+        run: docker pull urbaneducatorzz/nodeapp:latest
+      - name: Run container
+        run: docker run -d -p 5000:5000 --name nodejsapp-container -e MONGODB_URI=${{ secrets.MONGO_PASSWORD }} urbaneducatorzz/nodeapp
+
