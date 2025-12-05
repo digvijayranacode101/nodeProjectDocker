@@ -36,5 +36,5 @@ jobs:
           docker rm nodejsapp-container || true
           docker run -d -p 5000:5000 \
             --name nodejsapp-container \
-            -e MONGODB_URI='${{ secrets.MONGO_PASSWORD }}' \
+            -e MONGODB_URI='${{ secrets.MONGODB_URI }}' \
             ${{ secrets.DOCKER_HUB_USERNAME }}/nodeapp:latest
