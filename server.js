@@ -27,7 +27,7 @@ mongoose
 // Create a new userhh
 app.post("/api/users", async (req, res) => {
   try {
-    console.log("Request body:", req.body);
+    console.log("Rjquest body:", req.body);
     const { email, password, userName } = req.body;
 
     // Validate input
