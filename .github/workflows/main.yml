@@ -2,27 +2,39 @@ name: CICD Node application
 
 on:
   push:
-    branches: [main,master]
-    
+    branches: [main, master]
+
 jobs:
   build:
-    runs-on: [ubuntu-latest]
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout Source
         uses: actions/checkout@v4
+
       - name: Login to docker hub
-        uses: docker login -u ${{ secrets.DOCKER_HUB_USERNAME }} -p ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+
       - name: Build docker image
-        run: docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/nodeapp .
+        run: docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/nodeapp:latest .
+
       - name: Publish image to docker hub
         run: docker push ${{ secrets.DOCKER_HUB_USERNAME }}/nodeapp:latest
-    
+
   publish:
     needs: build
     runs-on: self-hosted
     steps:
       - name: Pull image from docker hub
-        run: docker pull urbaneducatorzz/nodeapp:latest
-      - name: Run container
-        run: docker run -d -p 5000:5000 --name nodejsapp-container -e MONGODB_URI=${{ secrets.MONGO_PASSWORD }} urbaneducatorzz/nodeapp
+        run: docker pull ${{ secrets.DOCKER_HUB_USERNAME }}/nodeapp:latest
 
+      - name: Run container
+        run: |
+          docker stop nodejsapp-container || true
+          docker rm nodejsapp-container || true
+          docker run -d -p 5000:5000 \
+            --name nodejsapp-container \
+            -e MONGODB_URI='${{ secrets.MONGO_PASSWORD }}' \
+            ${{ secrets.DOCKER_HUB_USERNAME }}/nodeapp:latest
