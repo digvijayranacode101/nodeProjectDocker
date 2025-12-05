@@ -24,7 +24,7 @@ mongoose
 
 // Routes
 
-// Create a new user
+// Create a new userhh
 app.post("/api/users", async (req, res) => {
   try {
     console.log("Request body:", req.body);
